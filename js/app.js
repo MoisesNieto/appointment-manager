@@ -21,9 +21,13 @@ class Citas{
      this.citas = [...this.citas,cita]
      console.log(this.citas);
  }
-        eliminarCita(id){
+ eliminarCita(id){
             this.citas = this.citas.filter( cita => cita.id !== id );
         }
+    editarCita(citaActulizada){
+        this.citas = this.citas.map(cita => cita.id === citaActulizada.id ? citaActulizada : cita );
+
+    }
 
 }
 
@@ -171,7 +175,12 @@ function nuevaCita(e){
 
     if (editando){
         ui.imprimirHtml('Editado correctamente');
+        //pasa el objeto de la cita adicion
+        administradorCitas.editarCita({...citaOBJ});
+
+        //regredar el texto del boton al original
         formulario.querySelector('button[type="submit"]').textContent = 'Crear citas';
+
 
         //quitar modo cita
         editando = false;
@@ -248,6 +257,6 @@ function eliminarCita(id){
     //cambiar el texto del formulario
     formulario.querySelector('button[type="submit"]').textContent = 'Guardar cambio';
 
-editando = true;
+    editando = true;
 
  }
