@@ -8,6 +8,7 @@ const sintomaInput = document.querySelector('#sintomas');
 //ui interfez
 const formulario = document.querySelector('#nueva-cita');
 const contenedorCitas = document.querySelector('#citas');
+let editando;
 
 
 //class citas
@@ -20,6 +21,9 @@ class Citas{
      this.citas = [...this.citas,cita]
      console.log(this.citas);
  }
+        eliminarCita(id){
+            this.citas = this.citas.filter( cita => cita.id !== id );
+        }
 
 }
 
@@ -28,11 +32,12 @@ class UI {
 
     imprimirHtml(mensaje, tipo){
         const divMensaje = document.createElement('div');
+
         divMensaje.classList.add('text-center','alert','d-block', 'col-12');
-        if (tipo === 'error'){
+        if ( tipo === 'error'){
             divMensaje.classList.add('alert-danger');
         }else{
-            divMensaje.classList.add('alert-sucess')
+            divMensaje.classList.add('alert-success')
         }
         //mostrar mensaje de error
 
@@ -52,7 +57,7 @@ class UI {
         this.limpiarHtml()
 
         citas.forEach(cita  => {
-            const {mascota, propietario, telefono, fecha, hora, sintomas,id} = cita;
+            const {mascota, propietario, telefono, fecha, hora, sintomas, id} = cita;
             
             const divCita = document.createElement('div');
             divCita.classList.add('card', 'p-3');
@@ -83,7 +88,14 @@ class UI {
            const btnEliminar = document.createElement('button');
            btnEliminar.classList.add('btn', 'btn-danger', 'mr-2');
            btnEliminar.innerHTML= 'eliminar <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ';
+           
+           btnEliminar.onclick = () => eliminarCita(id);
 
+           // añadir buton para editara
+           const btnEditar = document.createElement('button');
+           btnEditar.classList.add('btn','btn-info');
+           btnEditar.innerHTML ='Editar <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>';
+           btnEditar.onclick= () => cargarEdicion(cita);
            
             //Agregar los parrafo al div
 
@@ -95,6 +107,7 @@ class UI {
             divCita.appendChild(horaParrafo);
             divCita.appendChild(sintomasParrafo);
             divCita.appendChild(btnEliminar);
+            divCita.appendChild(btnEditar);
 
 
             //agregar la cita al html
@@ -105,8 +118,8 @@ class UI {
     }
 
     limpiarHtml(){
-        while(contenedorCitas.fristchild){
-            contenedorCitas.removeChild(contenedorCitas.fristchild);
+        while(contenedorCitas.firstChild){
+            contenedorCitas.removeChild(contenedorCitas.firstChild);
         }
     }
 
@@ -154,12 +167,27 @@ function nuevaCita(e){
         ui.imprimirHtml('todos los campo son obligatorio', 'error');
         return;
     }
-    //generar un id
-    citaOBJ.id = new Date()
+
+
+    if (editando){
+        ui.imprimirHtml('Editado correctamente');
+        formulario.querySelector('button[type="submit"]').textContent = 'Crear citas';
+
+        //quitar modo cita
+        editando = false;
+
+    }else{
+        //generar un id
+        citaOBJ.id = Date.now();
 
     //crear una nueva cita
     administradorCitas.agregarCita({...citaOBJ});
-    console.log(administradorCitas)
+    ui.imprimirHtml('Se agrego correctamente');
+
+    }
+    
+   
+   
 
     //reinicar el objeto
     reiniciarObjeto();
@@ -169,6 +197,7 @@ function nuevaCita(e){
 
     //mostra la cita
     ui.imprimirCita(administradorCitas);
+   
 
 }
 function reiniciarObjeto(){
@@ -177,6 +206,48 @@ function reiniciarObjeto(){
     citaOBJ.telefono = '';
     citaOBJ.fecha = ''; 
     citaOBJ.hora = '';
-    citaOBJ.sintoms = '';
+    citaOBJ.sintomas = '';
 
 }
+
+
+function eliminarCita(id){
+
+    //eliminar cita
+    administradorCitas.eliminarCita(id) ;
+
+    //mostar mensaje de eliminacion
+    ui.imprimirHtml('Se ha borrado correctamente');
+
+    //actualizar citas
+    ui.imprimirCita(administradorCitas);
+  
+    
+}
+//carga los datos y modo edicion
+ function cargarEdicion(cita){
+    const {mascota, propietario, telefono, fecha, hora, sintomas, id} = cita;
+
+    mascotaInput.value = mascota;
+    propietarioInput.value = propietario;
+    telefonoInput.value = telefono;
+    fechaInput.value = fecha;
+    fechaInput.value = hora;
+    sintomaInput.value= sintomas;
+
+    citaOBJ.mascota = mascota;
+    citaOBJ.propietario = propietario;
+    citaOBJ.telefono = telefono;
+    citaOBJ.fecha = fecha;
+    citaOBJ.hora = hora;
+    citaOBJ.sintomas = sintomas;
+    citaOBJ.id = id;
+
+
+
+    //cambiar el texto del formulario
+    formulario.querySelector('button[type="submit"]').textContent = 'Guardar cambio';
+
+editando = true;
+
+ }
